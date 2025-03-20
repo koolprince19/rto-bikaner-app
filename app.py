@@ -4,17 +4,17 @@ import os
 
 app = Flask(__name__)
 
-# Define the path to the Excel file (inside the same directory as app.py)
-FILE_PATH = os.path.join(os.path.dirname(__file__), "erawana.xlsx")
+# Path to the Excel file (change it if needed)
+FILE_PATH = "data.xlsx"
 
-# Load Excel data
+# Load Excel data (Make sure the file is in your project folder)
 if os.path.exists(FILE_PATH):
     data = pd.read_excel(FILE_PATH)
 else:
-    data = None  # Handle the case if the file is missing
+    data = pd.DataFrame(columns=["Vehicle Number", "Total Round", "Total Overload", "Total CF"])
 
 @app.route("/")
-def login():
+def welcome():
     return render_template("login.html")
 
 @app.route("/home", methods=["GET", "POST"])
@@ -25,11 +25,11 @@ def home():
 def search():
     results = None
     if request.method == "POST":
-        query = request.form["query"].strip().upper()  # Convert input to uppercase for consistency
-        if data is not None:
-            results = data[data.iloc[:, 0].astype(str) == query]  # Filter by first column (Vehicle Number)
-    
+        query = request.form.get("query")
+        results = data[data["Vehicle Number"].astype(str).str.contains(query, na=False, case=False)]
+
     return render_template("search.html", results=results)
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 10000))  # Use PORT from Render, default to 10000
+    app.run(host="0.0.0.0", port=port, debug=True)
