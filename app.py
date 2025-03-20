@@ -1,44 +1,35 @@
-from flask import Flask, request, render_template, redirect, url_for, session
+from flask import Flask, render_template, request
 import pandas as pd
+import os
 
 app = Flask(__name__)
-app.secret_key = "Rtobikaner"
 
-# Load the Excel file permanently
-FILE_PATH = r"C:\Users\RTO\Desktop\erawana 19032025.xlsx"
-data = pd.read_excel(FILE_PATH)
+# Define the path to the Excel file (inside the same directory as app.py)
+FILE_PATH = os.path.join(os.path.dirname(__file__), "erawana.xlsx")
 
-@app.route('/', methods=['GET', 'POST'])
+# Load Excel data
+if os.path.exists(FILE_PATH):
+    data = pd.read_excel(FILE_PATH)
+else:
+    data = None  # Handle the case if the file is missing
+
+@app.route("/")
 def login():
-    if request.method == 'POST':
-        password = request.form.get('password')
-        if password == "Rtobikaner":
-            session['logged_in'] = True
-            return redirect(url_for('home'))
-    return render_template('login.html')
+    return render_template("login.html")
 
-@app.route('/home')
+@app.route("/home", methods=["GET", "POST"])
 def home():
-    if not session.get('logged_in'):
-        return redirect(url_for('login'))
-    return render_template('home.html', message="RTO BIKANER")
+    return render_template("home.html")
 
-@app.route('/search', methods=['GET', 'POST'])
+@app.route("/search", methods=["GET", "POST"])
 def search():
-    if not session.get('logged_in'):
-        return redirect(url_for('login'))
-    
     results = None
-    if request.method == 'POST':
-        query = request.form.get('query')
-        results = data[data.apply(lambda row: row.astype(str).str.contains(query, case=False, na=False).any(), axis=1)]
+    if request.method == "POST":
+        query = request.form["query"].strip().upper()  # Convert input to uppercase for consistency
+        if data is not None:
+            results = data[data.iloc[:, 0].astype(str) == query]  # Filter by first column (Vehicle Number)
     
-    return render_template('search.html', results=results)
+    return render_template("search.html", results=results)
 
-@app.route('/logout')
-def logout():
-    session.pop('logged_in', None)
-    return redirect(url_for('login'))
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     app.run(debug=True)
