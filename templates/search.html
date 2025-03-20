@@ -1,0 +1,36 @@
+<!-- search.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Search</title>
+</head>
+<body>
+    <h2>Search by Vehicle Number</h2>
+    <form method="post">
+        <input type="text" name="query" placeholder="Enter Vehicle Number" required>
+        <button type="submit">Search</button>
+    </form>
+    
+    {% if results is not none %}
+        <h3>Results:</h3>
+        <table border="1">
+            <tr>
+                <th>Vehicle Number</th>
+                <th>Total Round</th>
+                <th>Total Overload</th>
+                <th>Total CF</th>
+            </tr>
+            {% for row in results.itertuples() %}
+                <tr>
+                    <td>{{ row[1] }}</td>
+                    <td>{{ row[2] }}</td>
+                    <td>{{ row[3] }}</td>
+                    <td>{{ row[4] }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+    {% endif %}
+
+    <a href="/home">Back to Home</a>
+</body>
+</html>
